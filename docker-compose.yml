@@ -1,5 +1,17 @@
 services:
-  # MySQL Database Service
+  node_iot_main:
+    build: .
+    ports:
+      - "7000:7000"
+    volumes:
+      - .:/usr/src/app
+      - ./public:/usr/src/app/public
+    env_file:
+      - ./.env
+    depends_on:
+      - mysql
+    restart: always
+
   mysql:
     image: mysql:8.0
     container_name: mysql_db
@@ -14,56 +26,17 @@ services:
       - db_data:/var/lib/mysql
       - ./covid_cases_final.sql:/docker-entrypoint-initdb.d/covid_cases_final.sql # Mount ไฟล์ SQL โดยตรง
     restart: always
-    healthcheck: # <--- เพิ่มส่วนนี้
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"] # คำสั่งเช็คความพร้อมของ MySQL
-      interval: 5s # ตรวจสอบทุก 5 วินาที
-      timeout: 10s # Timeout ถ้าไม่ตอบสนองภายใน 10 วินาที
-      retries: 10 # ลองใหม่ 10 ครั้งก่อนจะถือว่าไม่พร้อม
-  # PHP and Apache Web Service
-  php-apache:
-    image: php:8.2-apache
-    container_name: php-apache-container
-    volumes:
-      - ./php:/var/www/html  # คัดลอกไฟล์ PHP ของคุณ
-      - ./php/php.ini:/usr/local/etc/php/conf.d/40-custom.ini  # คัดลอก php.ini ที่คุณแก้ไข
-    ports:
-      - "8090:80"
-    depends_on:
-      - mysql
-    networks:
-      - mynetwork
 
-  # phpMyAdmin Service
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
-    container_name: phpmyadmin-container
-    environment:
-      PMA_HOST: mysql  # ตั้งค่าให้ phpMyAdmin เชื่อมต่อกับ MySQL container
-      MYSQL_ROOT_PASSWORD: root_password
+    container_name: phpmyadmin
     ports:
-      - "8091:80"  # เปิดให้เข้าถึง phpMyAdmin ผ่านพอร์ต 8081
+      - "8081:80"
+    environment:
+      PMA_HOST: mysql
+      MYSQL_ROOT_PASSWORD: rootpassword
     depends_on:
       - mysql
-    networks:
-      - mynetwork
-
-  # Node.js Application Service
-  nodeapp:
-    build: .
-    container_name: node-iot-app
-    env_file:             
-      - ./.env          
-    ports:
-      - "7000:7000"
-    depends_on:
-      mysql:
-        condition: service_healthy # <--- เปลี่ยนตรงนี้
-    networks:
-      - mynetwork
-
+    restart: always
 volumes:
   db_data:
-
-networks:
-  mynetwork:
-    driver: bridge

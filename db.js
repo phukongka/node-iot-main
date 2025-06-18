@@ -47,3 +47,4 @@ db.getConnection((err, connection) => {
   console.log('✅ Connected to database pool. Connection ID: ' + connection.threadId);
   connection.release();
 });
+module.exports = db.promise();
