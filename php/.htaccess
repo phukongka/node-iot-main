@@ -1,0 +1,8 @@
+RewriteEngine On
+
+# ถ้าไฟล์หรือโฟลเดอร์มีอยู่จริง ให้แสดงตามปกติ
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# ถ้าไม่มีก็ให้เติม .php เข้าไป
+RewriteRule ^([a-zA-Z0-9_-]+)$ $1.php [L]

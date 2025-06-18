@@ -1,0 +1,31 @@
+stages:
+  - build
+  - test
+  - deploy
+
+# Build Docker Image สำหรับ Node.js app
+build:
+  stage: build
+  script:
+    - docker build -t node-iot:$CI_COMMIT_REF_NAME .
+  only:
+    - master
+    - develop
+
+# ทดสอบ Docker Image
+test:
+  stage: test
+  script:
+    - docker run -d -p 3000:3000 --name node-iot-test node-iot:$CI_COMMIT_REF_NAME
+    - curl http://localhost:3000/api/covid/stats/totalgender  # ทดสอบ API
+  only:
+    - master
+    - develop
+
+# Deploy Docker Image ไปยัง Production
+deploy:
+  stage: deploy
+  script:
+    - docker run -d -p 3000:3000 --name node-iot-production node-iot:$CI_COMMIT_REF_NAME
+  only:
+    - master
